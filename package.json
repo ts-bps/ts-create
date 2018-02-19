@@ -1,7 +1,7 @@
 {
   "name": "ts-create",
   "version": "0.1.0",
-  "bin": "dist/cli.js",
+  "bin": "build/cli.js",
   "scripts": {
     "start": "npm run test",
     "build": "rm -rf build/ && rm -rf ./dist/ && tsc",
