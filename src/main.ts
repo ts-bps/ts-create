@@ -14,12 +14,17 @@ const REPOS = {
   "ts-react-component": "ts-react-component"
 };
 
-const pickBoilerPlateQuestions = () =>
-  [
+const pickBoilerPlateQuestions = () => {
+  // log.info(argv);
+  return [
     {
       type: "rawlist",
       message: "Which TypeScript boilerplate ?",
       name: "boilerplate",
+      when: () => {
+        const argv = minimist(process.argv.slice(2));
+        return !("l" in argv) && !("ra" in argv) && !("rc" in argv);
+      },
       choices: [
         {
           name: "library",
@@ -63,6 +68,7 @@ const pickBoilerPlateQuestions = () =>
       ]
     }
   ] as inquirer.Questions;
+};
 
 const log = getLogger();
 
@@ -128,17 +134,32 @@ const setupTSBP = async ({
 
   const START_COMMAND = `cd ${name}/ && ${npmClientName} start`;
   copy.writeSync(START_COMMAND);
-  log.success(`${START_COMMAND} [ In Clipboard ]`);
+  log.success(`${START_COMMAND} [ In clipboard ]`);
 };
 //@ts-ignore
 import getUserName from "git-user-name";
+
+//@ts-ignore
+import minimist from "minimist";
+
 export const main = async () => {
-  const {
+  const argv = minimist(process.argv.slice(2));
+  log.info(argv);
+  let {
     boilerplate,
     boilerplateName,
     packageManager,
     description
   } = await inquirer.prompt(pickBoilerPlateQuestions());
+  if ("l" in argv) {
+    boilerplate = "ts-library";
+  }
+  if ("ra" in argv) {
+    boilerplate = "ts-react-app";
+  }
+  if ("rc" in argv) {
+    boilerplate = "ts-react-component";
+  }
   try {
     await downloadFromGithub({
       user: ORG,
