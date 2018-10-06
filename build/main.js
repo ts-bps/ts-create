@@ -81,7 +81,6 @@ const downloadFromGithub = ({ user, repo, ref, destinationName }) => {
     return new Promise((resolve, reject) => {
         ghDownload({ user, repo, ref }, `${process.cwd()}/${destinationName}`)
             .on("error", (err) => {
-            log.error(`Error downloading from github : ${JSON.stringify(err, null, 2)}`);
             reject(err);
         })
             .on("end", () => {

@@ -159,6 +159,7 @@ export const main = async () => {
     });
   } catch (err) {
     log.error(`${err.code} ${err.message}`);
+    return;
   }
 
   log.success("Downloaded from github.");
