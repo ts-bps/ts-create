@@ -4,6 +4,8 @@ import * as spawn from "cross-spawn";
 import * as fs from "fs";
 //@ts-ignore
 import * as ghDownload from "github-download";
+//@ts-ignore
+import copy from "copy-to-clipboard";
 
 const ORG = "ts-bps";
 const REPOS = {
@@ -109,6 +111,12 @@ const setupTSBP = async ({
   repoUrl: string;
 }) => {
   log.info(`Setting up project  ${name} at ${pathToProject}`);
+  if (fs.existsSync(pathToProject)) {
+    console.error(
+      `Project ${name} already exists in ${pathToProject}. Stopping. `
+    );
+    return;
+  }
   const pathToPackageJson = `${pathToProject}/package.json`;
   const packageJson = require(pathToPackageJson);
   const updatedPackageJson = {
@@ -134,7 +142,9 @@ const setupTSBP = async ({
   log.info("Removing old history and creating new one");
   spawn.sync("rm", ["-rf", ".git/"], { cwd: pathToProject, stdio: "inherit" });
   spawn.sync("git", ["init"], { cwd: pathToProject, stdio: "inherit" });
-  log.success(`cd ${name}/ && ${npmClientName} start`);
+  const START_COMMAND = `cd ${name}/ && ${npmClientName} start`;
+  copy(START_COMMAND);
+  log.success(`${START_COMMAND} [ In Clipboard ]`);
 };
 
 export const main = async () => {

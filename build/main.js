@@ -13,9 +13,9 @@ const inquirer = require("inquirer");
 const spawn = require("cross-spawn");
 const fs = require("fs");
 //@ts-ignore
-// import * as getNpmClient from "get-npm-client";
-//@ts-ignore
 const ghDownload = require("github-download");
+//@ts-ignore
+const copy_to_clipboard_1 = require("copy-to-clipboard");
 const ORG = "ts-bps";
 const REPOS = {
     "ts-library": "ts-library",
@@ -46,7 +46,19 @@ const pickBoilerPlateQuestions = [
         type: "input",
         message: "Name ?",
         name: "boilerplateName",
-        default: "ts-bp"
+        default: "thing-name"
+    },
+    {
+        type: "input",
+        message: "Url to the repo :",
+        name: "repoUrl",
+        default: "https://github.com/"
+    },
+    {
+        type: "input",
+        message: "Description",
+        name: "description",
+        default: "A thing that does some things."
     },
     {
         type: "rawlist",
@@ -77,11 +89,19 @@ const downloadFromGithub = ({ user, repo, ref, destinationName }) => {
         });
     });
 };
-const setupTSBP = ({ pathToProject, name, packageManager = "yarn" }) => __awaiter(this, void 0, void 0, function* () {
+const setupTSBP = ({ pathToProject, name, description = "A thing.", packageManager = "yarn", repoUrl = "" }) => __awaiter(this, void 0, void 0, function* () {
     log.info(`Setting up project  ${name} at ${pathToProject}`);
+    if (fs.existsSync(pathToProject)) {
+        console.error(`Project ${name} already exists in ${pathToProject}. Stopping. `);
+        return;
+    }
     const pathToPackageJson = `${pathToProject}/package.json`;
     const packageJson = require(pathToPackageJson);
-    const updatedPackageJson = Object.assign({}, packageJson, { name });
+    const updatedPackageJson = Object.assign({ name,
+        description, repository: {
+            type: "git",
+            url: repoUrl
+        } }, packageJson);
     fs.writeFileSync(pathToPackageJson, JSON.stringify(updatedPackageJson, null, 2));
     const npmClientName = packageManager;
     log.success(`Installing dependencies with ${npmClientName}`);
@@ -93,10 +113,12 @@ const setupTSBP = ({ pathToProject, name, packageManager = "yarn" }) => __awaite
     log.info("Removing old history and creating new one");
     spawn.sync("rm", ["-rf", ".git/"], { cwd: pathToProject, stdio: "inherit" });
     spawn.sync("git", ["init"], { cwd: pathToProject, stdio: "inherit" });
-    log.success(`cd ${name}/ && ${npmClientName} start`);
+    const START_COMMAND = `cd ${name}/ && ${npmClientName} start`;
+    copy_to_clipboard_1.default(START_COMMAND);
+    log.success(`${START_COMMAND} [ In Clipboard ]`);
 });
 exports.main = () => __awaiter(this, void 0, void 0, function* () {
-    const { boilerplate, boilerplateName, packageManager } = yield inquirer.prompt(pickBoilerPlateQuestions);
+    const { boilerplate, boilerplateName, packageManager, description, repoUrl } = yield inquirer.prompt(pickBoilerPlateQuestions);
     log.info(`Creating repository ${ORG}/${boilerplate} and putting it in ./${boilerplateName}`);
     log.info("Downloading from github");
     yield downloadFromGithub({
@@ -107,6 +129,12 @@ exports.main = () => __awaiter(this, void 0, void 0, function* () {
     });
     log.success("Downloaded from github.");
     const pathToProject = `${process.cwd()}/${boilerplateName}`;
-    yield setupTSBP({ pathToProject, name: boilerplateName, packageManager });
+    yield setupTSBP({
+        pathToProject,
+        name: boilerplateName,
+        packageManager,
+        description,
+        repoUrl
+    });
     return 0;
 });
