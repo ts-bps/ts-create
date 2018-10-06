@@ -13,14 +13,13 @@ const inquirer = require("inquirer");
 const spawn = require("cross-spawn");
 const fs = require("fs");
 //@ts-ignore
-const getNpmClient = require("get-npm-client");
+// import * as getNpmClient from "get-npm-client";
 //@ts-ignore
 const ghDownload = require("github-download");
 const ORG = "ts-bps";
 const REPOS = {
     "ts-library": "ts-library",
     "ts-react-app": "ts-react-app",
-    "ts-react-native-component": "ts-react-native-component",
     "ts-react-component": "ts-react-component"
 };
 const pickBoilerPlateQuestions = [
@@ -38,10 +37,6 @@ const pickBoilerPlateQuestions = [
                 value: "ts-react-component"
             },
             {
-                name: "react-native-component",
-                value: "ts-react-native-component"
-            },
-            {
                 name: "react-app",
                 value: "ts-react-app"
             }
@@ -52,6 +47,21 @@ const pickBoilerPlateQuestions = [
         message: "Name ?",
         name: "boilerplateName",
         default: "ts-bp"
+    },
+    {
+        type: "rawlist",
+        message: "Which package manager ?",
+        name: "packageManager",
+        choices: [
+            {
+                name: "yarn",
+                value: "yarn"
+            },
+            {
+                name: "npm",
+                value: "npm"
+            }
+        ]
     }
 ];
 const log = ts_logger_1.getLogger();
@@ -67,17 +77,13 @@ const downloadFromGithub = ({ user, repo, ref, destinationName }) => {
         });
     });
 };
-const getNpmClientName = () => __awaiter(this, void 0, void 0, function* () {
-    const npmClient = yield getNpmClient();
-    return npmClient === "yarn" ? npmClient : "npm";
-});
-const setupTSBP = ({ pathToProject, name }) => __awaiter(this, void 0, void 0, function* () {
+const setupTSBP = ({ pathToProject, name, packageManager = "yarn" }) => __awaiter(this, void 0, void 0, function* () {
     log.info(`Setting up project  ${name} at ${pathToProject}`);
     const pathToPackageJson = `${pathToProject}/package.json`;
     const packageJson = require(pathToPackageJson);
     const updatedPackageJson = Object.assign({}, packageJson, { name });
     fs.writeFileSync(pathToPackageJson, JSON.stringify(updatedPackageJson, null, 2));
-    const npmClientName = yield getNpmClientName();
+    const npmClientName = packageManager;
     log.success(`Installing dependencies with ${npmClientName}`);
     spawn.sync(npmClientName, ["install"], {
         cwd: pathToProject,
@@ -90,7 +96,7 @@ const setupTSBP = ({ pathToProject, name }) => __awaiter(this, void 0, void 0, f
     log.success(`cd ${name}/ && ${npmClientName} start`);
 });
 exports.main = () => __awaiter(this, void 0, void 0, function* () {
-    const { boilerplate, boilerplateName } = yield inquirer.prompt(pickBoilerPlateQuestions);
+    const { boilerplate, boilerplateName, packageManager } = yield inquirer.prompt(pickBoilerPlateQuestions);
     log.info(`Creating repository ${ORG}/${boilerplate} and putting it in ./${boilerplateName}`);
     log.info("Downloading from github");
     yield downloadFromGithub({
@@ -101,6 +107,6 @@ exports.main = () => __awaiter(this, void 0, void 0, function* () {
     });
     log.success("Downloaded from github.");
     const pathToProject = `${process.cwd()}/${boilerplateName}`;
-    yield setupTSBP({ pathToProject, name: boilerplateName });
+    yield setupTSBP({ pathToProject, name: boilerplateName, packageManager });
     return 0;
 });

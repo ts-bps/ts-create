@@ -3,7 +3,7 @@ import * as inquirer from "inquirer";
 import * as spawn from "cross-spawn";
 import * as fs from "fs";
 //@ts-ignore
-import * as getNpmClient from "get-npm-client";
+// import * as getNpmClient from "get-npm-client";
 //@ts-ignore
 import * as ghDownload from "github-download";
 
@@ -11,7 +11,6 @@ const ORG = "ts-bps";
 const REPOS = {
   "ts-library": "ts-library",
   "ts-react-app": "ts-react-app",
-  "ts-react-native-component": "ts-react-native-component",
   "ts-react-component": "ts-react-component"
 };
 
@@ -30,10 +29,6 @@ const pickBoilerPlateQuestions = [
         value: "ts-react-component"
       },
       {
-        name: "react-native-component",
-        value: "ts-react-native-component"
-      },
-      {
         name: "react-app",
         value: "ts-react-app"
       }
@@ -44,6 +39,21 @@ const pickBoilerPlateQuestions = [
     message: "Name ?",
     name: "boilerplateName",
     default: "ts-bp"
+  },
+  {
+    type: "rawlist",
+    message: "Which package manager ?",
+    name: "packageManager",
+    choices: [
+      {
+        name: "yarn",
+        value: "yarn"
+      },
+      {
+        name: "npm",
+        value: "npm"
+      }
+    ]
   }
 ] as inquirer.Questions;
 
@@ -74,17 +84,14 @@ const downloadFromGithub = ({
   });
 };
 
-const getNpmClientName = async () => {
-  const npmClient = await getNpmClient();
-  return npmClient === "yarn" ? npmClient : "npm";
-};
-
 const setupTSBP = async ({
   pathToProject,
-  name
+  name,
+  packageManager = "yarn"
 }: {
   pathToProject: string;
   name: string;
+  packageManager: "yarn" | "npm"
 }) => {
   log.info(`Setting up project  ${name} at ${pathToProject}`);
   const pathToPackageJson = `${pathToProject}/package.json`;
@@ -97,7 +104,7 @@ const setupTSBP = async ({
     pathToPackageJson,
     JSON.stringify(updatedPackageJson, null, 2)
   );
-  const npmClientName = await getNpmClientName();
+  const npmClientName = packageManager
   log.success(`Installing dependencies with ${npmClientName}`);
   spawn.sync(npmClientName, ["install"], {
     cwd: pathToProject,
@@ -111,7 +118,7 @@ const setupTSBP = async ({
 };
 
 export const main = async () => {
-  const { boilerplate, boilerplateName } = await inquirer.prompt(
+  const { boilerplate, boilerplateName, packageManager } = await inquirer.prompt(
     pickBoilerPlateQuestions
   );
   log.info(
@@ -126,6 +133,6 @@ export const main = async () => {
   });
   log.success("Downloaded from github.");
   const pathToProject = `${process.cwd()}/${boilerplateName}`;
-  await setupTSBP({ pathToProject, name: boilerplateName });
+  await setupTSBP({ pathToProject, name: boilerplateName, packageManager });
   return 0;
 };
