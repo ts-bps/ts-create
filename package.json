@@ -1,6 +1,6 @@
 {
   "name": "create-ts",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "bin": {
     "ts-create": "build/cli.js",
     "create-ts": "build/cli.js"

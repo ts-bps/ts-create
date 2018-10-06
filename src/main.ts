@@ -101,7 +101,7 @@ const setupTSBP = async ({
   packageManager: "yarn" | "npm";
   repoUrl: string;
 }) => {
-  log.info(`Setting up project  ${name} at ${pathToProject}`);
+  log.success(`Setting up project ${name} at ${pathToProject}`);
   const pathToPackageJson = `${pathToProject}/package.json`;
   const packageJson = require(pathToPackageJson);
   const updatedPackageJson = {
@@ -123,8 +123,6 @@ const setupTSBP = async ({
     cwd: pathToProject,
     stdio: "inherit"
   });
-  log.success("Done");
-  log.info("Removing old history and creating new one");
   spawn.sync("rm", ["-rf", ".git/"], { cwd: pathToProject, stdio: "inherit" });
   spawn.sync("git", ["init"], { cwd: pathToProject, stdio: "inherit" });
 
@@ -141,7 +139,6 @@ export const main = async () => {
     packageManager,
     description
   } = await inquirer.prompt(pickBoilerPlateQuestions());
-  log.info("Downloading from github");
   try {
     await downloadFromGithub({
       user: ORG,
@@ -153,8 +150,6 @@ export const main = async () => {
     log.error(`${err.code} ${err.message}`);
     return;
   }
-
-  log.success("Downloaded from github.");
   const pathToProject = `${process.cwd()}/${boilerplateName}`;
   const repoUrl = `https://github.com/${getUserName()}/${boilerplateName}`;
   await setupTSBP({
