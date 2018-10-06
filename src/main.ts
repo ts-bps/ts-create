@@ -105,7 +105,8 @@ const setupTSBP = async ({
   const pathToPackageJson = `${pathToProject}/package.json`;
   const packageJson = require(pathToPackageJson);
   const updatedPackageJson = {
-    ...packageJson.name,
+    ...packageJson,
+    name,
     description,
     repository: {
       type: "git",
