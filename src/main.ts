@@ -3,9 +3,11 @@ import * as inquirer from "inquirer";
 import * as spawn from "cross-spawn";
 import * as fs from "fs";
 //@ts-ignore
-import * as ghDownload from "github-download";
+import ghDownload from "github-download";
 //@ts-ignore
-import copy from "copy-to-clipboard";
+import copy from "clipboardy";
+
+import parse from "parse-git-config";
 
 const ORG = "ts-bps";
 const REPOS = {
@@ -14,61 +16,55 @@ const REPOS = {
   "ts-react-component": "ts-react-component"
 };
 
-const pickBoilerPlateQuestions = [
-  {
-    type: "rawlist",
-    message: "Which TypeScript boilerplate ?",
-    name: "boilerplate",
-    choices: [
-      {
-        name: "library",
-        value: "ts-library"
-      },
-      {
-        name: "react-component",
-        value: "ts-react-component"
-      },
-      {
-        name: "react-app",
-        value: "ts-react-app"
-      }
-    ]
-  },
-  {
-    type: "input",
-    message: "Name ?",
-    name: "boilerplateName",
-    default: "thing-name"
-  },
-  {
-    type: "input",
-    message: "Url to the repo :",
-    name: "repoUrl",
-    default: "https://github.com/"
-  },
-
-  {
-    type: "input",
-    message: "Description",
-    name: "description",
-    default: "A thing that does some things."
-  },
-  {
-    type: "rawlist",
-    message: "Which package manager ?",
-    name: "packageManager",
-    choices: [
-      {
-        name: "yarn",
-        value: "yarn"
-      },
-      {
-        name: "npm",
-        value: "npm"
-      }
-    ]
-  }
-] as inquirer.Questions;
+const pickBoilerPlateQuestions = () =>
+  [
+    {
+      type: "rawlist",
+      message: "Which TypeScript boilerplate ?",
+      name: "boilerplate",
+      choices: [
+        {
+          name: "library",
+          value: "ts-library"
+        },
+        {
+          name: "react-component",
+          value: "ts-react-component"
+        },
+        {
+          name: "react-app",
+          value: "ts-react-app"
+        }
+      ]
+    },
+    {
+      type: "input",
+      message: "Name ?",
+      name: "boilerplateName",
+      default: "thing-name"
+    },
+    {
+      type: "input",
+      message: "Description",
+      name: "description",
+      default: "A thing that does some things."
+    },
+    {
+      type: "rawlist",
+      message: "Which package manager ?",
+      name: "packageManager",
+      choices: [
+        {
+          name: "yarn",
+          value: "yarn"
+        },
+        {
+          name: "npm",
+          value: "npm"
+        }
+      ]
+    }
+  ] as inquirer.Questions;
 
 const log = getLogger();
 
@@ -111,13 +107,12 @@ const setupTSBP = async ({
   const pathToPackageJson = `${pathToProject}/package.json`;
   const packageJson = require(pathToPackageJson);
   const updatedPackageJson = {
-    name,
+    ...packageJson.name,
     description,
     repository: {
       type: "git",
       url: repoUrl
-    },
-    ...packageJson
+    }
   };
   fs.writeFileSync(
     pathToPackageJson,
@@ -133,22 +128,20 @@ const setupTSBP = async ({
   log.info("Removing old history and creating new one");
   spawn.sync("rm", ["-rf", ".git/"], { cwd: pathToProject, stdio: "inherit" });
   spawn.sync("git", ["init"], { cwd: pathToProject, stdio: "inherit" });
+
   const START_COMMAND = `cd ${name}/ && ${npmClientName} start`;
-  copy(START_COMMAND);
+  copy.writeSync(START_COMMAND);
   log.success(`${START_COMMAND} [ In Clipboard ]`);
 };
-
+//@ts-ignore
+import getUserName from "git-user-name";
 export const main = async () => {
   const {
     boilerplate,
     boilerplateName,
     packageManager,
-    description,
-    repoUrl
-  } = await inquirer.prompt(pickBoilerPlateQuestions);
-  log.info(
-    `Creating repository ${ORG}/${boilerplate} and putting it in ./${boilerplateName}`
-  );
+    description
+  } = await inquirer.prompt(pickBoilerPlateQuestions());
   log.info("Downloading from github");
   try {
     await downloadFromGithub({
@@ -164,6 +157,7 @@ export const main = async () => {
 
   log.success("Downloaded from github.");
   const pathToProject = `${process.cwd()}/${boilerplateName}`;
+  const repoUrl = `https://github.com/${getUserName()}/${boilerplateName}`;
   await setupTSBP({
     pathToProject,
     name: boilerplateName,

@@ -7,15 +7,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+}
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const ts_logger_1 = require("ts-logger");
-const inquirer = require("inquirer");
-const spawn = require("cross-spawn");
-const fs = require("fs");
-//@ts-ignore
-const ghDownload = require("github-download");
-//@ts-ignore
-const copy_to_clipboard_1 = require("copy-to-clipboard");
+const inquirer = __importStar(require("inquirer"));
+const spawn = __importStar(require("cross-spawn"));
+const fs = __importStar(require("fs"));
+const github_download_1 = __importDefault(require("github-download"));
+const clipboardy_1 = __importDefault(require("clipboardy"));
 const ORG = "ts-bps";
 const REPOS = {
     "ts-library": "ts-library",
@@ -79,7 +87,7 @@ const pickBoilerPlateQuestions = [
 const log = ts_logger_1.getLogger();
 const downloadFromGithub = ({ user, repo, ref, destinationName }) => {
     return new Promise((resolve, reject) => {
-        ghDownload({ user, repo, ref }, `${process.cwd()}/${destinationName}`)
+        github_download_1.default({ user, repo, ref }, `${process.cwd()}/${destinationName}`)
             .on("error", (err) => {
             reject(err);
         })
@@ -90,6 +98,9 @@ const downloadFromGithub = ({ user, repo, ref, destinationName }) => {
 };
 const setupTSBP = ({ pathToProject, name, description = "A thing.", packageManager = "yarn", repoUrl = "" }) => __awaiter(this, void 0, void 0, function* () {
     log.info(`Setting up project  ${name} at ${pathToProject}`);
+    var userName = require("git-user-name");
+    log.error(userName);
+    return;
     const pathToPackageJson = `${pathToProject}/package.json`;
     const packageJson = require(pathToPackageJson);
     const updatedPackageJson = Object.assign({ name,
@@ -109,12 +120,11 @@ const setupTSBP = ({ pathToProject, name, description = "A thing.", packageManag
     spawn.sync("rm", ["-rf", ".git/"], { cwd: pathToProject, stdio: "inherit" });
     spawn.sync("git", ["init"], { cwd: pathToProject, stdio: "inherit" });
     const START_COMMAND = `cd ${name}/ && ${npmClientName} start`;
-    copy_to_clipboard_1.default(START_COMMAND);
+    clipboardy_1.default.writeSync(START_COMMAND);
     log.success(`${START_COMMAND} [ In Clipboard ]`);
 });
 exports.main = () => __awaiter(this, void 0, void 0, function* () {
     const { boilerplate, boilerplateName, packageManager, description, repoUrl } = yield inquirer.prompt(pickBoilerPlateQuestions);
-    log.info(`Creating repository ${ORG}/${boilerplate} and putting it in ./${boilerplateName}`);
     log.info("Downloading from github");
     try {
         yield downloadFromGithub({
@@ -126,6 +136,7 @@ exports.main = () => __awaiter(this, void 0, void 0, function* () {
     }
     catch (err) {
         log.error(`${err.code} ${err.message}`);
+        return;
     }
     log.success("Downloaded from github.");
     const pathToProject = `${process.cwd()}/${boilerplateName}`;
