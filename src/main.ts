@@ -7,8 +7,6 @@ import ghDownload from "github-download";
 //@ts-ignore
 import copy from "clipboardy";
 
-import parse from "parse-git-config";
-
 const ORG = "ts-bps";
 const REPOS = {
   "ts-library": "ts-library",
