@@ -111,12 +111,6 @@ const setupTSBP = async ({
   repoUrl: string;
 }) => {
   log.info(`Setting up project  ${name} at ${pathToProject}`);
-  if (fs.existsSync(pathToProject)) {
-    console.error(
-      `Project ${name} already exists in ${pathToProject}. Stopping. `
-    );
-    return;
-  }
   const pathToPackageJson = `${pathToProject}/package.json`;
   const packageJson = require(pathToPackageJson);
   const updatedPackageJson = {
@@ -159,12 +153,17 @@ export const main = async () => {
     `Creating repository ${ORG}/${boilerplate} and putting it in ./${boilerplateName}`
   );
   log.info("Downloading from github");
-  await downloadFromGithub({
-    user: ORG,
-    repo: boilerplate,
-    ref: "master",
-    destinationName: boilerplateName
-  });
+  try {
+    await downloadFromGithub({
+      user: ORG,
+      repo: boilerplate,
+      ref: "master",
+      destinationName: boilerplateName
+    });
+  } catch (err) {
+    log.error(`${err.code} ${err.message}`);
+  }
+
   log.success("Downloaded from github.");
   const pathToProject = `${process.cwd()}/${boilerplateName}`;
   await setupTSBP({

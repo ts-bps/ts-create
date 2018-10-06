@@ -91,10 +91,6 @@ const downloadFromGithub = ({ user, repo, ref, destinationName }) => {
 };
 const setupTSBP = ({ pathToProject, name, description = "A thing.", packageManager = "yarn", repoUrl = "" }) => __awaiter(this, void 0, void 0, function* () {
     log.info(`Setting up project  ${name} at ${pathToProject}`);
-    if (fs.existsSync(pathToProject)) {
-        console.error(`Project ${name} already exists in ${pathToProject}. Stopping. `);
-        return;
-    }
     const pathToPackageJson = `${pathToProject}/package.json`;
     const packageJson = require(pathToPackageJson);
     const updatedPackageJson = Object.assign({ name,
@@ -121,12 +117,17 @@ exports.main = () => __awaiter(this, void 0, void 0, function* () {
     const { boilerplate, boilerplateName, packageManager, description, repoUrl } = yield inquirer.prompt(pickBoilerPlateQuestions);
     log.info(`Creating repository ${ORG}/${boilerplate} and putting it in ./${boilerplateName}`);
     log.info("Downloading from github");
-    yield downloadFromGithub({
-        user: ORG,
-        repo: boilerplate,
-        ref: "master",
-        destinationName: boilerplateName
-    });
+    try {
+        yield downloadFromGithub({
+            user: ORG,
+            repo: boilerplate,
+            ref: "master",
+            destinationName: boilerplateName
+        });
+    }
+    catch (err) {
+        log.error(`${err.code} ${err.message}`);
+    }
     log.success("Downloaded from github.");
     const pathToProject = `${process.cwd()}/${boilerplateName}`;
     yield setupTSBP({
