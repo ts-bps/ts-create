@@ -1,6 +1,6 @@
 {
   "name": "create-ts",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "bin": {
     "ts-create": "build/cli.js",
     "create-ts": "build/cli.js"
@@ -48,7 +48,9 @@
     "github-download": "^0.5.0",
     "inquirer": "^5.1.0",
     "is": "^3.2.1",
-    "parse-git-config": "^2.0.3",
     "ts-logger": "ts-bps/ts-logger"
-  }
+  },
+  "files": [
+    "build/"
+  ]
 }
