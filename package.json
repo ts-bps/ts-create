@@ -22,6 +22,7 @@
     "jest": "^22.3.0",
     "microbundle": "^0.4.3",
     "parcel-bundler": "^1.6.1",
+    "prettier": "^1.14.3",
     "typescript": "^2.7.2"
   },
   "jest": {
