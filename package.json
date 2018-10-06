@@ -1,6 +1,6 @@
 {
   "name": "create-ts",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "bin": {
     "ts-create": "build/cli.js",
     "create-ts": "build/cli.js"
@@ -8,7 +8,8 @@
   "scripts": {
     "start": "npm run test",
     "build": "rm -rf build/ && rm -rf ./dist/ && tsc && chmod +x build/cli.js",
-    "test": "jest --watch --coverage"
+    "test": "jest --watch --coverage",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
