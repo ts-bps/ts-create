@@ -1,8 +1,9 @@
 {
-  "name": "ts-create",
-  "version": "0.1.4",
+  "name": "create-ts",
+  "version": "0.1.5",
   "bin": {
-    "ts-create": "build/cli.js"
+    "ts-create": "build/cli.js",
+    "create-ts": "build/cli.js"
   },
   "scripts": {
     "start": "npm run test",
