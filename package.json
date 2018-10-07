@@ -1,6 +1,6 @@
 {
   "name": "create-ts",
-  "version": "0.1.15",
+  "version": "0.0.0-development",
   "bin": {
     "ts-create": "build/cli.js",
     "create-ts": "build/cli.js"
@@ -9,7 +9,10 @@
     "start": "npm run test",
     "build": "rm -rf build/ && rm -rf ./dist/ && tsc && chmod +x build/cli.js",
     "prepublish": "npm run build",
-    "commit": "git-cz"
+    "commit": "git-cz",
+    "test": "yarn tsc",
+    "setup:semantic-release": "npx semantic-release-cli setup",
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",
